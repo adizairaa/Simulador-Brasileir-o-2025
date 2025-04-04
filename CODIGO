@@ -1,0 +1,70 @@
+import csv
+import sys
+import random
+
+# Número de simulações
+N = 1000
+
+def main():
+    # Verifica se o nome do arquivo CSV foi fornecido
+    if len(sys.argv) != 2:
+        sys.exit("Uso: python torneio_brasileirao.py brasileirao2025.csv")
+
+    times = []
+    campeoes = {}
+
+    # Lê os times e Classificações do arquivo CSV
+    with open(sys.argv[1], encoding="utf-8") as arquivo:
+        leitor = csv.DictReader(arquivo)
+        for linha in leitor:
+            linha["classificacao"] = int(linha["classificacao"])
+            times.append(linha)
+
+    # Simula o torneio várias vezes
+    for _ in range(N):
+        campeao = simular_torneio(times)
+        if campeao in campeoes:
+            campeoes[campeao] += 1
+        else:
+            campeoes[campeao] = 1
+
+    # Exibe as chances de cada time ser campeão
+    print("\n🏆 Probabilidades de título no Brasileirão 2025:")
+    for time in sorted(campeoes, key=lambda x: campeoes[x], reverse=True):
+        chance = (campeoes[time] / N) * 100
+        print(f"{time}: {chance:.1f}% de chance de ser campeão")
+
+
+def simular_jogo(time1, time2):
+    """Simula um jogo entre dois times usando seus ratings"""
+    rating1 = time1["classificacao"]
+    rating2 = time2["classificacao"]
+    probabilidade = 1 / (1 + 10 ** ((classificacao2 - classificacao1) / 600))
+    return random.random() < probabilidade
+
+
+def simular_rodada(times):
+    """Simula uma rodada (oitavas, quartas, semi, final...)"""
+    vencedores = []
+    for i in range(0, len(times), 2):
+        if simular_jogo(times[i], times[i + 1]):
+            vencedores.append(times[i])
+        else:
+            vencedores.append(times[i + 1])
+    return vencedores
+
+
+def simular_torneio(times):
+    """Simula o torneio completo até sobrar um campeão"""
+    # Cópia da lista e embaralhamento
+    times = times[:]
+    random.shuffle(times)
+
+    while len(times) > 1:
+        times = simular_rodada(times)
+
+    return times[0]["team"]
+
+
+if __name__ == "__main__":
+    main()
